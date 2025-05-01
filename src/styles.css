@@ -1,0 +1,18 @@
+/* CSS Styles */
+
+/* ---- COMPONENTS ---- */
+
+/* Accordion 
+.accordion_content {
+    grid-template-rows: 0fr;
+    display: block;
+}
+
+.accordion_details[data-accordion-status="open"] .accordion_content {
+    height: 1000px;
+}
+    */
+
+    details {
+        border: 1px solid red;
+    }
