@@ -1,18 +1,82 @@
-/* CSS Styles */
-
-/* ---- COMPONENTS ---- */
-
-/* Accordion 
-.accordion_content {
-    grid-template-rows: 0fr;
-    display: block;
+/* ------------------------- DEFAULT STYLES ------------------------------------------- */
+:root {
+  --animation-default: cubic-bezier(0.86, -0.58, 0.27, 1.51);
+  --animation-spring: cubic-bezier(0.86, -0.58, 0.27, 1.51);
 }
 
-.accordion_details[data-accordion-status="open"] .accordion_content {
-    height: 1000px;
-}
-    */
+/* ------------------------- COMPONENTS ------------------------------------------- */
 
-    details {
-        border: 1px solid red;
-    }
+/* ------------------------- Modal / Dialog ------------------------------------------- */
+
+/* Animate the modal in from the bottom */
+.modal_inner {
+  opacity: 1;
+  transition: all 0.6s var(--animation-default);
+  transform: scale(1);
+}
+
+.modal_backdrop:not([open]) {
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.5s var(--animation-default);
+}
+
+.modal:not([open]) .modal_inner {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+
+  .modal[open] .modal_backdrop {
+    opacity: 1;
+  }
+
+/* ------------------------- Accordion ------------------------------------------- */
+
+.accordion_details {
+  --icon-ease: cubic-bezier(0.86, -0.58, 0.27, 1.51);
+  --icon-duration: 0.35s;
+}
+
+/* Base styles with no animation for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .accordion_details {
+    --icon-duration: 0.001s; /* Tiny duration instead of 0s to ensure state changes */
+    --icon-ease: linear;
+  }
+}
+
+.accordion_icon svg {
+  transition: rotate var(--icon-duration) var(--icon-ease);
+}
+
+.accordion_icon svg path:first-child {
+  transition: transform var(--icon-duration) var(--icon-ease);
+  transform: scaleY(1);
+  transform-origin: center;
+}
+
+/* Only apply hover effects if device supports hover */
+@media (hover: hover) {
+  .accordion_details:hover .accordion_icon svg {
+    rotate: 25deg;
+  }
+}
+
+.accordion_details[open] .accordion_icon svg {
+  rotate: 180deg;
+  transition: rotate var(--icon-duration) var(--icon-ease);
+}
+
+.accordion_details[open] .accordion_icon svg path:first-child {
+  transform: scaleY(0);
+}
+
+/* Remove animations for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .accordion_details[open] .accordion_icon svg,
+  .accordion_icon svg path:first-child,
+  .accordion_details[open] .accordion_icon svg path:first-child {
+    transition-duration: 0.001s;
+    transition-timing-function: linear;
+  }
+}

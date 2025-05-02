@@ -6,7 +6,7 @@ import lagrangeBarbaCore from "https://cdn.skypack.dev/@lagrange/barba-core";
 
 gsap.registerPlugin(ScrollTrigger, CustomEase);
 
-//CustomEase.create("custom", "M0,0 C0.88,-0.359 0.064,1.348 1,1 ");
+CustomEase.create("custom", "M0,0 C0.88,-0.359 0.064,1.348 1,1 ");
 
 $(document).ready(function () {
   initPageTransitions();
@@ -148,8 +148,8 @@ function initLenis() {
 function initFunctions() {
   console.log("initFunctions");
   initDetectScrollingDirection();
-  // initAccordion();
-  initAccordionTwo();
+  initModal();
+  initAccordion();
 }
 
 function initResetWebflow(data) {
@@ -196,174 +196,109 @@ function initDetectScrollingDirection() {
 
 /* Component Functions */
 
-function initAccordion() {
-  // First, remove any existing click handlers to prevent duplicates
-  $("[data-accordion-summary]").off("click");
+function initModal() {
+  console.log("initModal");
   
-  $("[data-accordion]").each(function () {
-    const accordionItem = $(this);
-    const accordionSummary = accordionItem.find("[data-accordion-summary]");
-    const accordionContent = accordionItem.find("[data-accordion-content]");
-    let timeline = null;
-    let isClosing = false;
-    let isExpanding = false;
-    const duration = 0.5;
-    const ease = "custom";
+  let modal = $('.modal');
+  let toggles = $('[data-modal-toggle]');    // All modal toggle buttons
 
-    function onClick(e) {
-      e.preventDefault();
-      accordionItem.css("overflow", "hidden");
+  // Open modal
+  toggles.on('click', function() {
+    if (modal.is('[open]')) {
+      closeModal();
+    } else {
+      openModal();
+    }  });
 
-      if (isClosing || !accordionItem.prop("open")) {
-        openAccordion();
-      } else if (isExpanding || accordionItem.prop("open")) {
-        shrinkAccordion();
-      }
+  function openModal() {
+    modal.attr('open', '');
+  }
+
+  // Close modal function
+  function closeModal() {
+    modal.removeAttr('open');
+  }
+
+  // Close modal on ESC key
+  $(window).on('keydown', function(e) {
+    if (e.key === 'Escape' && modal.is('[open]')) {
+      closeModal();
     }
-
-    function shrinkAccordion() {
-      isClosing = true;
-      const startHeight = accordionItem.outerHeight();
-      const endHeight = accordionSummary.outerHeight();
-
-      if (timeline) {
-        timeline.kill();
-      }
-
-      timeline = gsap.timeline({
-        onComplete: function () {
-          onAnimationFinish(false);
-        },
-        onReverseComplete: function () {
-          isClosing = false;
-        },
-      });
-
-      timeline
-        .to(accordionItem[0], {
-          height: endHeight,
-          duration: duration,
-          ease: ease,
-        })
-        .to(
-          accordionContent,
-          {
-            opacity: 0,
-            y: -10,
-            duration: duration * 0.5,
-            ease: "power2.in",
-          },
-          "<"
-        );
-    }
-
-    function openAccordion() {
-      accordionItem.css("height", `${accordionItem.outerHeight()}px`);
-      accordionItem.prop("open", true);
-      window.requestAnimationFrame(expandAccordion);
-    }
-
-    function expandAccordion() {
-      isExpanding = true;
-      const startHeight = accordionItem.outerHeight();
-      const endHeight = accordionSummary.outerHeight() + accordionContent.outerHeight();
-
-      if (timeline) {
-        timeline.kill();
-      }
-
-      timeline = gsap.timeline({
-        onComplete: function () {
-          onAnimationFinish(true);
-        },
-        onReverseComplete: function () {
-          isExpanding = false;
-        },
-      });
-
-      timeline
-        .to(accordionItem[0], {
-          height: endHeight,
-          duration: duration,
-          ease: ease,
-        })
-        .fromTo(
-          accordionContent,
-          {
-            opacity: 0,
-            y: -50,
-          },
-          {
-            opacity: 1,
-            y: 0,
-            duration: duration * 0.5,
-            ease: "power2.out",
-          },
-          "<+50%"
-        )
-        .add(() => {
-          // Clear props after all animations
-          gsap.set(accordionItem[0], { clearProps: "height,overflow" });
-          gsap.set(accordionContent, { clearProps: "opacity,y" });
-        });
-    }
-
-    function onAnimationFinish(open) {
-      accordionItem.prop("open", open);
-      timeline = null;
-      isClosing = false;
-      isExpanding = false;
-    }
-
-    accordionSummary.on("click", onClick);
   });
 }
 
-function initAccordionTwo() {
-  
+function initAccordion() {  
+  const accordionDuration = 0.4;
+  const accordionEase = "custom";
+
   $("[data-accordion]").each(function () {
     let accordionItem = $(this);
     let accordionSummary = accordionItem.find("[data-accordion-summary]");
     let accordionContent = accordionItem.find("[data-accordion-content]");
-
-    let currentHeight = accordionItem.height();
-
     
     accordionSummary.on("click", function (e) {
       e.preventDefault();
-      const currentStatus = accordionItem.attr("open");
-      currentStatus === "open" ? closeAccordion() : openAccordion();
+      
+      const isOpen = accordionItem.prop("open");
+      isOpen ? closeAccordion() : openAccordion();
     });
 
-    function openAccordion() {
-      let contentHeight = accordionContent.height();
-
-      let tl = gsap.timeline({
-        onComplete: function () {
-          // accordionItem.attr("open", true);
-        },
+    const openAccordion = () => {
+      // First set current height and make content visible
+      accordionItem.css({
+        height: accordionSummary.outerHeight() + "px",
       });
-
-      gsap.to(accordionItem, {
-        height: currentHeight + contentHeight,
-        duration: 0.7,
-        ease: "power4.inOut",
-      });
+      accordionItem.prop("open", true);
+      
+      // Now we can measure the content height
+      const endHeight = accordionSummary.outerHeight() + accordionContent.outerHeight();
+      
+      gsap.timeline()
+        .to(accordionItem, {
+          height: endHeight,
+          duration: accordionDuration,
+          ease: accordionEase,
+          onComplete: () => {
+            // Clear temporary styles
+            accordionItem.css({
+              height: "",
+            });
+          }
+        })
+        .fromTo(accordionContent, {
+          opacity: 0,
+          y: -20,
+          filter: "blur(10px)",
+        }, {
+          opacity: 1,
+          y: 0,
+          filter: "blur(0px)",
+          duration: accordionDuration,
+          ease: "power3.inOut"
+        }, "<");
     }
 
-    async function closeAccordion() {
-      console.log("close accordion");
-
-      let tl = gsap.timeline({
-        onComplete: function () {
-          accordionItem.attr("open", false);
-        },
-      });
-      tl.to(accordionItem, {
-        height: currentHeight,
-        duration: 0.7,
-        ease: "power4.inOut",
-      });
+    const closeAccordion = () => {
+      // Set current height before animating
+      const startHeight = accordionItem.outerHeight();
+      const endHeight = accordionSummary.outerHeight();
+            
+      gsap.timeline()
+        .to(accordionItem, {
+          height: endHeight,
+          duration: accordionDuration,
+          ease: accordionEase,
+          onComplete: () => {
+            accordionItem.prop("open", false);
+            accordionItem.css({
+            });
+          }
+        })
+        .to(accordionContent, {
+          opacity: 0,
+          duration: accordionDuration,
+          ease: accordionEase
+        }, "<");
     }
   });
 }
